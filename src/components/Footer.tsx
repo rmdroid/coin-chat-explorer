@@ -52,6 +52,11 @@ const Footer = () => {
                   Kontakt
                 </Link>
               </li>
+              <li>
+                <Link to="/impressum" className="text-muted-foreground hover:text-primary transition-colors">
+                  Impressum
+                </Link>
+              </li>
             </ul>
           </div>
           
@@ -75,10 +80,10 @@ const Footer = () => {
             &copy; {new Date().getFullYear()} CoinChat Explorer. Alle Rechte vorbehalten.
           </p>
           <div className="flex space-x-6 mt-4 sm:mt-0">
-            <Link to="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Datenschutz
             </Link>
-            <Link to="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Nutzungsbedingungen
             </Link>
           </div>
