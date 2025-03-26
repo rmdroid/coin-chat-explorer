@@ -11,7 +11,19 @@ import {
   ChartTooltip,
   ChartTooltipContent 
 } from './ui/chart';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart as RechartsBarChart, 
+  Bar, 
+  PieChart as RechartsPieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  ResponsiveContainer,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 interface StatCardProps {
   title: string;
@@ -22,15 +34,8 @@ interface StatCardProps {
   gradientClass?: string;
 }
 
-const mockChartData = [
-  { name: 'Jan', value: 1000 },
-  { name: 'Feb', value: 1200 },
-  { name: 'Mär', value: 900 },
-  { name: 'Apr', value: 1500 },
-  { name: 'Mai', value: 1700 },
-  { name: 'Jun', value: 1400 },
-  { name: 'Jul', value: 2100 },
-];
+// Die Farben für das Kreisdiagramm
+const COLORS = ['#F7931A', '#627EEA', '#3F3F3F', '#1BA27A', '#2775CA', '#F0B90B'];
 
 const StatCard = ({ title, value, change, isPositive, icon, gradientClass = "crypto-gradient" }: StatCardProps) => (
   <Card className="overflow-hidden">
@@ -115,6 +120,38 @@ const MarketOverview = () => {
   // Ethereum Dominanz
   const ethDominance = marketData.market_cap_percentage.eth?.toFixed(1) + '%' || "10.0%";
 
+  // Daten für das Kreisdiagramm der Marktdominanz
+  const dominanceData = Object.entries(marketData.market_cap_percentage)
+    .filter(([key]) => ['btc', 'eth', 'usdt', 'bnb', 'usdc'].includes(key))
+    .map(([key, value]) => ({
+      name: key.toUpperCase(),
+      value: parseFloat(value.toFixed(1))
+    }));
+  
+  // Sonstige Kryptowährungen in eine Kategorie zusammenfassen
+  const otherPercentage = 100 - dominanceData.reduce((sum, item) => sum + item.value, 0);
+  if (otherPercentage > 0) {
+    dominanceData.push({ name: 'Andere', value: parseFloat(otherPercentage.toFixed(1)) });
+  }
+
+  // Daten für das Balkendiagramm zur Marktentwicklung
+  const marketDevelopmentData = [
+    { name: 'Bitcoin', value: marketData.total_market_cap.usd * (marketData.market_cap_percentage.btc / 100) / 1e9 },
+    { name: 'Ethereum', value: marketData.total_market_cap.usd * ((marketData.market_cap_percentage.eth || 0) / 100) / 1e9 },
+    { name: 'Stablecoins', value: marketData.total_market_cap.usd * ((marketData.market_cap_percentage.usdt || 0) + (marketData.market_cap_percentage.usdc || 0)) / 100 / 1e9 },
+    { name: 'Altcoins', value: marketData.total_market_cap.usd * (100 - marketData.market_cap_percentage.btc - (marketData.market_cap_percentage.eth || 0) - ((marketData.market_cap_percentage.usdt || 0) + (marketData.market_cap_percentage.usdc || 0))) / 100 / 1e9 }
+  ];
+
+  // Formatierung für Tooltips im Balkendiagramm
+  const formatBarValue = (value: number) => {
+    return `${value.toFixed(0)} Mrd. €`;
+  };
+
+  // Formatierung für Tooltips im Kreisdiagramm
+  const formatPieValue = (value: number) => {
+    return `${value}%`;
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center">
@@ -155,83 +192,71 @@ const MarketOverview = () => {
         />
       </div>
       
-      {/* Marktentwicklung Chart */}
+      {/* Balkendiagramm für Marktentwicklung */}
       <Card className="p-6">
-        <h3 className="text-lg font-display font-bold mb-4">Marktentwicklung Übersicht</h3>
-        <div className="h-64">
-          <ChartContainer
-            config={{
-              value: { label: "Marktwert", theme: { light: "var(--color-primary)", dark: "#fff" } },
-            }}
-          >
-            <AreaChart data={mockChartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-              <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
+        <h3 className="text-lg font-display font-bold mb-4">Marktverteilung (Mrd. €)</h3>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsBarChart
+              data={marketDevelopmentData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+              barSize={40}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <ChartTooltip
-                content={
-                  ({ active, payload }) => active && payload?.length ? (
-                    <ChartTooltipContent payload={payload} />
-                  ) : null
-                }
+              <Tooltip 
+                formatter={(value: number) => [formatBarValue(value), 'Marktkapitalisierung']}
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid #f0f0f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+                }}
               />
-              <Area 
-                type="monotone" 
-                dataKey="value" 
-                name="value" 
-                stroke="#8884d8" 
-                fillOpacity={1} 
-                fill="url(#colorValue)" 
-              />
-            </AreaChart>
-          </ChartContainer>
+              <Legend />
+              <Bar dataKey="value" fill="#8884d8">
+                {marketDevelopmentData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </RechartsBarChart>
+          </ResponsiveContainer>
         </div>
       </Card>
       
-      {/* Top Kryptowährungen nach Dominanz */}
+      {/* Kreisdiagramm für Marktdominanz */}
       <Card className="p-6">
         <h3 className="text-lg font-display font-bold mb-4">Marktdominanz</h3>
-        <div className="h-64">
-          <ChartContainer
-            config={{
-              btc: { label: "Bitcoin", theme: { light: "#F7931A", dark: "#F7931A" } },
-              eth: { label: "Ethereum", theme: { light: "#627EEA", dark: "#627EEA" } },
-              other: { label: "Andere", theme: { light: "#6C7284", dark: "#6C7284" } },
-            }}
-          >
-            <LineChart data={[
-              { name: 'Jan', btc: 40, eth: 20, other: 40 },
-              { name: 'Feb', btc: 45, eth: 18, other: 37 },
-              { name: 'Mär', btc: 42, eth: 22, other: 36 },
-              { name: 'Apr', btc: 48, eth: 19, other: 33 },
-              { name: 'Mai', btc: 50, eth: 21, other: 29 },
-              { name: 'Jun', btc: 47, eth: 24, other: 29 },
-              { name: 'Jul', btc: marketData.market_cap_percentage.btc, eth: marketData.market_cap_percentage.eth || 19, other: 100 - marketData.market_cap_percentage.btc - (marketData.market_cap_percentage.eth || 19) },
-            ]}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <ChartTooltip
-                content={
-                  ({ active, payload }) => active && payload?.length ? (
-                    <ChartTooltipContent payload={payload} />
-                  ) : null
-                }
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsPieChart>
+              <Pie
+                data={dominanceData}
+                cx="50%"
+                cy="50%"
+                labelLine={true}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+              >
+                {dominanceData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value: number) => [formatPieValue(value), 'Dominanz']}
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid #f0f0f0',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+                }}
               />
-              <Line type="monotone" dataKey="btc" name="btc" stroke="#F7931A" />
-              <Line type="monotone" dataKey="eth" name="eth" stroke="#627EEA" />
-              <Line type="monotone" dataKey="other" name="other" stroke="#6C7284" />
-              <ChartLegend
-                content={<ChartLegendContent verticalAlign="bottom" />}
-              />
-            </LineChart>
-          </ChartContainer>
+              <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+            </RechartsPieChart>
+          </ResponsiveContainer>
         </div>
       </Card>
     </div>
