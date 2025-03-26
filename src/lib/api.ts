@@ -36,38 +36,38 @@ export async function fetchGlobalMarketData(): Promise<MarketData | null> {
   }
 }
 
-// This is a mock implementation since we're using RSS feeds which require server-side processing
-// In a real implementation, you'd use a backend service to fetch and parse RSS feeds
+// Mock-Implementation für deutsche Krypto-Nachrichten
 export async function fetchCryptoNews(): Promise<NewsItem[]> {
-  // Mock data for demonstration
+  // Für eine echte Implementierung würde man einen Backend-Service nutzen, 
+  // um RSS-Feeds zu holen und zu parsen
   return [
     {
-      title: "Bitcoin surges past $60,000 as institutional adoption grows",
+      title: "Bitcoin überschreitet 60.000 USD mit steigender institutioneller Akzeptanz",
       link: "#",
       pubDate: new Date().toISOString(),
-      description: "Bitcoin has reached a new milestone, surpassing $60,000 as institutional adoption continues to grow.",
-      source: "CryptoNews"
+      description: "Bitcoin hat einen neuen Meilenstein erreicht und überschreitet 60.000 USD, während die institutionelle Akzeptanz weiter zunimmt.",
+      source: "KryptoNews"
     },
     {
-      title: "Ethereum 2.0 update progresses with successful testnet implementation",
+      title: "Ethereum 2.0-Update schreitet mit erfolgreicher Testnet-Implementierung voran",
       link: "#",
       pubDate: new Date(Date.now() - 86400000).toISOString(),
-      description: "Ethereum's transition to proof-of-stake moves forward with another successful testnet implementation.",
+      description: "Ethereums Übergang zu Proof-of-Stake kommt mit einer weiteren erfolgreichen Testnet-Implementierung voran.",
       source: "BlockchainReport"
     },
     {
-      title: "Major bank announces cryptocurrency trading services for institutional clients",
+      title: "Große Bank kündigt Kryptowährungs-Handelsservices für institutionelle Kunden an",
       link: "#",
       pubDate: new Date(Date.now() - 172800000).toISOString(),
-      description: "In a significant move for the industry, a major financial institution has announced cryptocurrency trading services.",
-      source: "FinanceToday"
+      description: "In einem bedeutenden Schritt für die Branche hat ein großes Finanzinstitut Kryptowährungs-Handelsservices angekündigt.",
+      source: "FinanzHeute"
     },
     {
-      title: "New regulatory framework for digital assets proposed by financial authorities",
+      title: "Neuer Regulierungsrahmen für digitale Vermögenswerte von Finanzbehörden vorgeschlagen",
       link: "#",
       pubDate: new Date(Date.now() - 259200000).toISOString(),
-      description: "Regulatory bodies have proposed a new framework aimed at providing clarity for cryptocurrency operations.",
-      source: "CryptoInsider"
+      description: "Regulierungsbehörden haben einen neuen Rahmen vorgeschlagen, der auf mehr Klarheit für Kryptowährungs-Operationen abzielt.",
+      source: "KryptoInsider"
     }
   ];
 }
