@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { TrendingUp, DollarSign, BarChart, ArrowUpRight, ArrowDownRight, Globe } from 'lucide-react';
 import { fetchGlobalMarketData } from '../lib/api';
@@ -12,7 +11,8 @@ import {
   CartesianGrid, 
   ResponsiveContainer,
   Tooltip,
-  Legend
+  Legend,
+  Cell
 } from 'recharts';
 
 interface StatCardProps {
@@ -25,7 +25,6 @@ interface StatCardProps {
   delay?: number;
 }
 
-// Die Farben für das Diagramm
 const COLORS = ['#F7931A', '#627EEA', '#3F3F3F', '#1BA27A', '#2775CA', '#F0B90B'];
 
 const StatCard = ({ title, value, change, isPositive, icon, gradientClass = "crypto-gradient", delay = 0 }: StatCardProps) => (
@@ -65,7 +64,6 @@ const MarketOverview = () => {
       } finally {
         setLoading(false);
         
-        // Delay chart animation to create a sequenced effect
         setTimeout(() => {
           setChartAnimated(true);
         }, 800);
@@ -73,7 +71,7 @@ const MarketOverview = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 300000); // Aktualisierung alle 5 Minuten
+    const interval = setInterval(fetchData, 300000);
     return () => clearInterval(interval);
   }, []);
 
@@ -98,35 +96,29 @@ const MarketOverview = () => {
     );
   }
 
-  // Formatierung Marktkapitalisierung
   const totalMarketCap = marketData.total_market_cap.usd;
   const formattedMarketCap = new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
     notation: 'compact',
     maximumFractionDigits: 2
-  }).format(totalMarketCap * 0.93); // Ungefähre USD zu EUR Umrechnung
+  }).format(totalMarketCap * 0.93);
 
-  // Formatierung 24h Volumen
   const total24hVolume = marketData.total_volume.usd;
   const formatted24hVolume = new Intl.NumberFormat('de-DE', {
     style: 'currency',
     currency: 'EUR',
     notation: 'compact',
     maximumFractionDigits: 2
-  }).format(total24hVolume * 0.93); // Ungefähre USD zu EUR Umrechnung
+  }).format(total24hVolume * 0.93);
 
-  // Bitcoin Dominanz
   const btcDominance = marketData.market_cap_percentage.btc.toFixed(1) + '%';
 
-  // Marktkapitalisierung Änderung
   const marketCapChange = marketData.market_cap_change_percentage_24h_usd.toFixed(2) + '%';
   const isMarketCapChangePositive = marketData.market_cap_change_percentage_24h_usd >= 0;
 
-  // Ethereum Dominanz
   const ethDominance = marketData.market_cap_percentage.eth?.toFixed(1) + '%' || "10.0%";
 
-  // Daten für das Balkendiagramm zur Marktentwicklung
   const marketDevelopmentData = [
     { name: 'Bitcoin', value: marketData.total_market_cap.usd * (marketData.market_cap_percentage.btc / 100) / 1e9, fill: '#F7931A' },
     { name: 'Ethereum', value: marketData.total_market_cap.usd * ((marketData.market_cap_percentage.eth || 0) / 100) / 1e9, fill: '#627EEA' },
@@ -134,7 +126,6 @@ const MarketOverview = () => {
     { name: 'Altcoins', value: marketData.total_market_cap.usd * (100 - marketData.market_cap_percentage.btc - (marketData.market_cap_percentage.eth || 0) - ((marketData.market_cap_percentage.usdt || 0) + (marketData.market_cap_percentage.usdc || 0))) / 100 / 1e9, fill: '#3F3F3F' }
   ];
 
-  // Formatierung für Tooltips im Balkendiagramm
   const formatBarValue = (value: number) => {
     return `${value.toFixed(0)} Mrd. €`;
   };
@@ -148,7 +139,6 @@ const MarketOverview = () => {
         <h2 className="text-3xl font-display font-bold">Marktübersicht</h2>
       </div>
       
-      {/* Statistikkarten mit gestaffelten Animationen */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Gesamte Marktkapitalisierung"
@@ -185,7 +175,6 @@ const MarketOverview = () => {
         />
       </div>
       
-      {/* Animiertes Balkendiagramm für Marktentwicklung */}
       <div 
         className={`transition-all duration-1000 ${chartAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
